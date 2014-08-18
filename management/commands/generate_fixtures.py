@@ -9,6 +9,8 @@ from django.core import serializers
 import importlib
 
 
+seen = []
+
 def _get_data(obj):
     """
     fetch all the data of the object.
@@ -17,7 +19,26 @@ def _get_data(obj):
     if not isinstance(obj, models.Model):
         raise Exception('Not a model')
 
+    uid = repr(obj)
+    if uid in seen:
+        return []
+    seen.append(uid)
+
     ans = [obj]
+
+    # adding the reverse set
+    for d in [d for d in dir(obj) if not d.startswith('_')]:
+        try: 
+            attribut = getattr(obj, d)
+        except:
+            pass
+
+        if isinstance(attribut, models.Manager):
+            set_objs = attribut.all()
+            for set_obj in set_objs:
+                ans += _get_data(set_obj)
+
+    # adding the foreign key objects
     meta = obj.__class__._meta
     fields = meta.fields
     for field in fields:
@@ -27,12 +48,6 @@ def _get_data(obj):
             pass
         if item and isinstance(field, models.ForeignKey):
             ans.append(item)
-
-    sets_to_fetch = [s for s in dir(obj) if s.endswith("_set")]
-    for set_to_fetch in sets_to_fetch:
-        set_objs = getattr(obj, set_to_fetch).all()
-        for set_obj in set_objs:
-            ans += _get_data(set_obj)
 
     return ans
 
@@ -69,9 +84,10 @@ class Command(BaseCommand):
             module = importlib.import_module(module_name)
             if module:
                 model = getattr(module, model_name)
-                parent_obj = model.objects.get(pk=pk)
-
-                if not parent_obj:
+                try:
+                    parent_obj = model.objects.get(pk=pk)
+                    self.stderr.write("fetched the parent obj {}\n".format(parent_obj))
+                except:
                     raise CommandError("didnt find the object with the pk {}".format(pk))
 
                 data = generate_data(parent_obj)
