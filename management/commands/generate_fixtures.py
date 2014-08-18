@@ -7,6 +7,7 @@ from django.db import models
 from django.db.models import Model
 from django.core import serializers
 import importlib
+import sys
 
 
 seen = []
@@ -19,12 +20,11 @@ def _get_data(obj):
     if not isinstance(obj, models.Model):
         raise Exception('Not a model')
 
+    ans = []
     uid = repr(obj)
     if uid in seen:
-        return []
+        return ans
     seen.append(uid)
-
-    ans = [obj]
 
     # adding the reverse set
     for d in [d for d in dir(obj) if not d.startswith('_')]:
@@ -33,21 +33,16 @@ def _get_data(obj):
         except:
             pass
 
-        if isinstance(attribut, models.Manager):
+        if d in [ field.name for field in obj.__class__._meta.fields ] \
+           and isinstance(attribut, models.Manager):
             set_objs = attribut.all()
             for set_obj in set_objs:
                 ans += _get_data(set_obj)
 
-    # adding the foreign key objects
-    meta = obj.__class__._meta
-    fields = meta.fields
-    for field in fields:
-        try:
-            item = getattr(obj, field.name)
-        except:
-            pass
-        if item and isinstance(field, models.ForeignKey):
-            ans.append(item)
+        if isinstance(attribut, models.Model):
+            ans += _get_data(attribut)
+
+    ans.append(obj)
 
     return ans
 
@@ -63,7 +58,7 @@ def generate_data(obj):
 
 
 class Command(BaseCommand):
-    args = '<app>.<Model> <id_object>'
+    args = '<app>.<Model> <id_object> [<max_depth>]'
     help = """
            Generate fixtures
            for a given object, generate json fixtures to rediret
@@ -78,7 +73,6 @@ class Command(BaseCommand):
         if len(args) == 2:
             app_model = args[0]
             pk = args[1]
-            self.stderr.write("this is app_model: {}\n".format(app_model))
             module_name = '.'.join(app_model.split('.')[0:-1])
             model_name = app_model.split('.')[-1]
             module = importlib.import_module(module_name)
