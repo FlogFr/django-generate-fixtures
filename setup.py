@@ -7,6 +7,6 @@ setup(
     for django following the links of a given object ''',
     author='aRkadeFR',
     author_email='contact@arkade.info',
-    url='http://arkadefr.github.io/'
+    url='http://arkadefr.github.io/',
     packages=['distutils'],
-    )
+)
