@@ -32,9 +32,10 @@ def _get_data(obj):
             attribut = getattr(obj, d)
         except:
             pass
-
-        if d in [ field.name for field in obj.__class__._meta.fields ] \
-           and isinstance(attribut, models.Manager):
+            
+        fields = [ field.name for field in obj.__class__._meta.fields ]
+        fields += [ field.name for field in obj.__class__._meta.many_to_many ]
+        if d in fields and isinstance(attribut, models.Manager):
             set_objs = attribut.all()
             for set_obj in set_objs:
                 ans += _get_data(set_obj)
