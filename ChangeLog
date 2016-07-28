@@ -1,0 +1,15 @@
+CHANGES
+=======
+
+0.2
+---
+
+* Prepare release 0.2
+* Flaked8 code
+* includes objects from manytomany fields
+* first version
+* wrong information
+* adding setup.py to push to pypi
+* dependency ordered for object
+* generic and forbid loops
+* generate fixtures for a given objects (following the links)
