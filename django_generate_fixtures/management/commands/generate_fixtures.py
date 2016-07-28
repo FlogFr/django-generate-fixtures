@@ -7,10 +7,10 @@ from django.db import models
 from django.db.models import Model
 from django.core import serializers
 import importlib
-import sys
 
 
 seen = []
+
 
 def _get_data(obj):
     """
@@ -28,13 +28,13 @@ def _get_data(obj):
 
     # adding the reverse set
     for d in [d for d in dir(obj) if not d.startswith('_')]:
-        try: 
+        try:
             attribut = getattr(obj, d)
         except:
             pass
-            
-        fields = [ field.name for field in obj.__class__._meta.fields ]
-        fields += [ field.name for field in obj.__class__._meta.many_to_many ]
+
+        fields = [field.name for field in obj.__class__._meta.fields]
+        fields += [field.name for field in obj.__class__._meta.many_to_many]
         if d in fields and isinstance(attribut, models.Manager):
             set_objs = attribut.all()
             for set_obj in set_objs:
@@ -67,7 +67,7 @@ class Command(BaseCommand):
            from this parent object.
 
            syntax example:
-               python manage.py generate_fixtures 'core.models.Client' 364 > ./core/fixtures/test_fixtures.json
+               python manage.py generate_fixtures 'core.models.Client' 364
            """
 
     def handle(self, *args, **options):
@@ -81,9 +81,11 @@ class Command(BaseCommand):
                 model = getattr(module, model_name)
                 try:
                     parent_obj = model.objects.get(pk=pk)
-                    self.stderr.write("fetched the parent obj {}\n".format(parent_obj))
+                    self.stderr.write(
+                        "fetched the parent obj {}\n".format(parent_obj))
                 except:
-                    raise CommandError("didnt find the object with the pk {}".format(pk))
+                    raise CommandError(
+                        "didnt find the object with the pk {}".format(pk))
 
                 data = generate_data(parent_obj)
 
