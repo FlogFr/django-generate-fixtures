@@ -1,3 +1,4 @@
+# flake8: noqa
 from setuptools import (
     setup,
     find_packages,
@@ -12,6 +13,6 @@ setup(
     author_email='contact@arkade.info',
     url='https://github.com/aRkadeFR/django-generate-fixtures',
     download_url='https://github.com/arkadefr/django-generate-fixtures/tarball/v0.1',
-    keywords=['django', 'generate', 'fixtures', 'fixture',],
+    keywords=['django', 'generate', 'fixtures', 'fixture'],
     packages=find_packages(),
 )
